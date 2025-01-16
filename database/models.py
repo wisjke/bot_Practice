@@ -4,10 +4,10 @@ from math import remainder
 from mimetypes import read_mime_types
 from typing import List, Tuple
 
+
 class Database:
     def __init__(self, db_file: str = 'reminders.db'):
         self.db_file = db_file
-
 
     def create_tables(self):
         conn = sqlite3.connect(self.db_file)

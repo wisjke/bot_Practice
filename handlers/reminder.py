@@ -10,10 +10,12 @@ from states.reminder import ReminderStates
 db = Database()
 router = Router()
 
+
 @router.message(Command(commands=['newreminder']))
 async def cmd_new_reminder(message: types.Message, state: FSMContext):
     await state.set_state(ReminderStates.waiting_for_name)
     await message.answer("Please enter the name of the person:")
+
 
 @router.message(ReminderStates.waiting_for_name)
 async def process_name(message: types.Message, state: FSMContext):
@@ -23,6 +25,7 @@ async def process_name(message: types.Message, state: FSMContext):
         "Please enter the birth date in DD.MM.YYYY format:\n"
         "Example: 25.12.1990"
     )
+
 
 @router.message(ReminderStates.waiting_for_date)
 async def process_date(message: types.Message, state: FSMContext):
@@ -34,6 +37,7 @@ async def process_date(message: types.Message, state: FSMContext):
 
     except ValueError:
         await message.answer("Invalid date format. Please use DD.MM.YYYY format.\nExample: 25.12.1990")
+
 
 @router.message(ReminderStates.waiting_for_message)
 async def process_message(message: types.Message, state: FSMContext):

@@ -3,6 +3,8 @@ from aiogram import Bot
 from database.models import Database
 from apscheduler.triggers.cron import CronTrigger
 import asyncio
+
+
 db = Database()
 
 
