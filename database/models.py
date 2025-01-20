@@ -17,18 +17,22 @@ class Database:
             (user_id INTEGER,
             name TEXT,
             birth_date TEXT,
-            message TEXT)
+            message TEXT,
+            early_reminder INTEGER,
+            days_before INTEGER)
             """
         )
         conn.commit()
         conn.close()
 
-    def add_reminder(self, user_id:int, name:str, birth_date:str, message:str):
+    def add_reminder(self, user_id:int, name:str, birth_date:str,
+                     message:str, early_reminder:bool=False, days_before:int=0):
         conn = sqlite3.connect(self.db_file)
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO reminders (user_id, name, birth_date, message) VALUES(?, ?, ?, ?)",
-            (user_id, name, birth_date, message)
+            """INSERT INTO reminders (user_id, name, birth_date, message, early_reminder, days_before)
+                VALUES(?, ?, ?, ?, ?, ?)""",
+            (user_id, name, birth_date, message, early_reminder, days_before)
         )
         conn.commit()
         conn.close()

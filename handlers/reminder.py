@@ -41,22 +41,78 @@ async def process_date(message: types.Message, state: FSMContext):
 
 @router.message(ReminderStates.waiting_for_message)
 async def process_message(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    db.add_reminder(
-        message.from_user.id,
-        data['name'],
-        data['date'],
-        message.text
-    )
+    await state.update_data(message=message.text)
 
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text='✅', callback_data='early_yes'),
+            InlineKeyboardButton(text='❌', callback_data='early_no')
+        ]
+    ])
+
+    await state.set_state(ReminderStates.waiting_for_early_reminder)
     await message.answer(
-        f"Reminder set!\n\n"
-        f"Name: {data['name']}\n"
-        f"Birth date: {data['date']}\n"
-        f"Message: {message.text}"
+        "Would you like to receive an additional reminder before the birthday? "
+        "(For example, to buy gifts)",
+        reply_markup=keyboard
     )
 
-    await state.clear()
+
+@router.callback_query(F.data.startswith("early_"))
+async def process_early_reminder(callback:CallbackQuery, state: FSMContext):
+    action = callback.data.split('_')[1]
+    if action == 'no':
+        data = await state.get_data()
+        db.add_reminder(
+            callback.from_user.id,
+            data['name'],
+            data['date'],
+            data['message']
+        )
+
+        await callback.message.edit_text(
+            f"Reminder set!\n\n"
+            f"Name: {data['name']}\n"
+            f"Birth date: {data['date']}\n"
+            f"Message: {data['message']}"
+        )
+        await state.clear()
+    else:
+        await state.set_state(ReminderStates.waiting_for_days_before)
+        await callback.message.edit_text(
+            "How many days before the birthday would you like to receive the early reminder?\n"
+            "Please enter a number (1-30):"
+        )
+
+
+@router.message(ReminderStates.waiting_for_days_before)
+async def process_days_before(message: Message, state: FSMContext):
+    try:
+        days = int(message.text)
+        if 1 <= days <= 30:
+            data = await state.get_data()
+            db.add_reminder(
+                message.from_user.id,
+                data['name'],
+                data['date'],
+                data['message'],
+                True,
+                days
+            )
+
+            await message.answer(
+                f"Reminder set!\n\n"
+                f"Name: {data['name']}\n"
+                f"Birth date: {data['date']}\n"
+                f"Message: {data['message']}\n"
+                f"Early reminder: {days} days before"
+            )
+            await state.clear()
+        else:
+            await message.answer("Please enter a number between 1 and 30.")
+    except ValueError:
+        await message.answer("Please enter a valid number.")
+
 
 
 @router.message(Command(commands=['myreminders']))
