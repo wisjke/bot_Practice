@@ -9,20 +9,23 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from database.models import Database
 from handlers import common, reminder
 from utils.scheduler import check_reminders
+from utils.commands import set_bot_commands
 
 
 async def main() -> None:
     load_dotenv('.env')
     token = os.getenv('TOKEN_API')
 
+    #bot
     bot = Bot(token=token)
+
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     scheduler = AsyncIOScheduler()
     db = Database()
     db.create_tables()
 
-    # Register handlers
+    #register handlers
     dp.include_router(common.router)
     dp.include_router(reminder.router)
 
@@ -34,6 +37,7 @@ async def main() -> None:
     try:
         # Start polling
         await bot.delete_webhook(drop_pending_updates=True)
+        await set_bot_commands(bot)
         await dp.start_polling(bot)
     finally:
         # Shut down properly

@@ -1,7 +1,5 @@
 import logging
 import sqlite3
-from math import remainder
-from mimetypes import read_mime_types
 from typing import List, Tuple
 
 

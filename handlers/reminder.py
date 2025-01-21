@@ -14,7 +14,7 @@ router = Router()
 @router.message(Command(commands=['newreminder']))
 async def cmd_new_reminder(message: types.Message, state: FSMContext):
     await state.set_state(ReminderStates.waiting_for_name)
-    await message.answer("Please enter the name of the person:")
+    await message.answer("✨ Введіть ім'я іменинника/іменинниці:")
 
 
 @router.message(ReminderStates.waiting_for_name)
@@ -22,8 +22,9 @@ async def process_name(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
     await state.set_state(ReminderStates.waiting_for_date)
     await message.answer(
-        "Please enter the birth date in DD.MM.YYYY format:\n"
-        "Example: 25.12.1990"
+        "📅 Введіть дату народження у форматі: <b>ДД.ММ.РРРР</b>\n"
+        "Наприклад: 25.12.1990",
+        parse_mode='HTML'
     )
 
 
@@ -33,10 +34,10 @@ async def process_date(message: types.Message, state: FSMContext):
         date = datetime.strptime(message.text, "%d.%m.%Y")
         await state.update_data(date=message.text)
         await state.set_state(ReminderStates.waiting_for_message)
-        await message.answer("Please enter a custom reminder message:")
+        await message.answer("📝 Напишіть персональне привітання або повідомлення:")
 
     except ValueError:
-        await message.answer("Invalid date format. Please use DD.MM.YYYY format.\nExample: 25.12.1990")
+        await message.answer("❌ Невірний формат дати. Спробуйте ще раз.\nПриклад: 25.12.1990")
 
 
 @router.message(ReminderStates.waiting_for_message)
@@ -45,15 +46,15 @@ async def process_message(message: types.Message, state: FSMContext):
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text='✅', callback_data='early_yes'),
-            InlineKeyboardButton(text='❌', callback_data='early_no')
+            InlineKeyboardButton(text='✅ Так', callback_data='early_yes'),
+            InlineKeyboardButton(text='❌ Ні', callback_data='early_no')
         ]
     ])
 
     await state.set_state(ReminderStates.waiting_for_early_reminder)
     await message.answer(
-        "Would you like to receive an additional reminder before the birthday? "
-        "(For example, to buy gifts)",
+        "🎁 Бажаєте отримати нагадування заздалегідь, щоб підготувати подарунок?\n"
+        "Виберіть опцію нижче:",
         reply_markup=keyboard
     )
 
@@ -71,17 +72,17 @@ async def process_early_reminder(callback:CallbackQuery, state: FSMContext):
         )
 
         await callback.message.edit_text(
-            f"Reminder set!\n\n"
-            f"Name: {data['name']}\n"
-            f"Birth date: {data['date']}\n"
-            f"Message: {data['message']}"
+            f"✅ Нагадування створено!\n\n"
+            f"👤 Ім'я: {data['name']}\n"
+            f"📅 Дата народження: {data['date']}\n"
+            f"📝 Повідомлення: {data['message']}"
         )
         await state.clear()
     else:
         await state.set_state(ReminderStates.waiting_for_days_before)
         await callback.message.edit_text(
-            "How many days before the birthday would you like to receive the early reminder?\n"
-            "Please enter a number (1-30):"
+            "⏳ За скільки днів до дня народження надіслати нагадування?\n"
+            "Введіть число від 1 до 30:"
         )
 
 
@@ -101,17 +102,17 @@ async def process_days_before(message: Message, state: FSMContext):
             )
 
             await message.answer(
-                f"Reminder set!\n\n"
-                f"Name: {data['name']}\n"
-                f"Birth date: {data['date']}\n"
-                f"Message: {data['message']}\n"
-                f"Early reminder: {days} days before"
+                f"✅ Нагадування створено!\n\n"
+                f"👤 Ім'я: {data['name']}\n"
+                f"📅 Дата народження: {data['date']}\n"
+                f"📝 Повідомлення: {data['message']}\n"
+                f"⏳ Попереднє нагадування: за {days} днів"
             )
             await state.clear()
         else:
-            await message.answer("Please enter a number between 1 and 30.")
+            await message.answer("❌ Будь ласка, введіть число від 1 до 30")
     except ValueError:
-        await message.answer("Please enter a valid number.")
+        await message.answer("❌ Введіть, будь ласка, коректне число")
 
 
 
@@ -120,13 +121,13 @@ async def cmd_my_reminders(message: Message):
     reminders = db.get_user_reminders(message.from_user.id)
 
     if not reminders:
-        await message.answer("You don't have any reminders set.")
+        await message.answer("ℹ️ У вас ще немає жодного нагадування")
         return
 
     for name, date, msg in reminders:
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(
-                text="🗑 Delete",
+                text="🗑 Видалити",
                 callback_data=f"delete_{name}_{date}"
             )]
         ])
@@ -147,10 +148,10 @@ async def process_delete_reminder(callback: CallbackQuery):
     if db.delete_reminder(callback.from_user.id, name, date):
         # Update the message to show it's deleted
         await callback.message.edit_text(
-            f"✅ Deleted reminder:\n"
+             f"✅ Нагадування видалено:\n"
             f"🎂 {name} - {date}",
             reply_markup=None
         )
-        await callback.answer("Reminder deleted successfully!")
+        await callback.answer("Нагадування успішно видалено!")
     else:
-        await callback.answer("Error deleting reminder. Please try again.", show_alert=True)
+        await callback.answer(f'❌ Помилка при видаленні нагадування \nСпробуйте ще раз.', show_alert=True)
