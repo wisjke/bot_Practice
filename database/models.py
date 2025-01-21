@@ -43,14 +43,14 @@ class Database:
         Returns a list of tuples (name, birth_date, message)
         """
         conn = sqlite3.connect(self.db_file)
-        c = conn.cursor()
-        c.execute("""
+        cursor = conn.cursor()
+        cursor.execute("""
             SELECT name, birth_date, message 
             FROM reminders 
             WHERE user_id = ?
             ORDER BY substr(birth_date, 4, 2), substr(birth_date, 1, 2)
         """, (user_id,))
-        reminders = c.fetchall()
+        reminders = cursor.fetchall()
         conn.close()
         return reminders
 
@@ -65,16 +65,29 @@ class Database:
         conn.close()
         return reminders
 
+    def get_early_reminders(self, future_date:str) -> List[Tuple]:
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+        cursor.execute("""
+                SELECT user_id, name, message, days_before
+                FROM reminders
+                WHERE early_reminder = 1 
+                AND strftime('%d.%m', date(julianday('now') + days_before)) = ?
+            """, (future_date,))
+        early_reminders = cursor.fetchall()
+        conn.close()
+        return early_reminders
+
     def delete_reminder(self, user_id:int, name:str, date:str) -> bool:
         try:
             conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
-            c.execute("""
+            cursor = conn.cursor()
+            cursor.execute("""
                         DELETE FROM reminders 
                         WHERE user_id = ? AND name = ? AND birth_date = ?
                     """, (user_id, name, date))
             conn.commit()
-            success = c.rowcount > 0
+            success = cursor.rowcount > 0
             conn.close()
             return success
         except Exception as e:

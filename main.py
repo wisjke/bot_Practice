@@ -27,7 +27,7 @@ async def main() -> None:
     dp.include_router(reminder.router)
 
     # Schedule the reminder check job
-    trigger = CronTrigger(hour=16, minute=24)
+    trigger = CronTrigger(hour=14, minute=10)
     scheduler.add_job(check_reminders, trigger=trigger, args=[bot])
     scheduler.start()
 
