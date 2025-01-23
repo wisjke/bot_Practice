@@ -1,9 +1,8 @@
 import logging
 from datetime import datetime, timedelta
 from aiogram import Bot
-from database.models import Database
+from database.models import db
 
-db = Database()
 
 
 async def check_reminders(bot: Bot):

@@ -1,13 +1,15 @@
+import os
+from dotenv import load_dotenv
 from aiogram import types, Router, F
 from datetime import datetime
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 
-from database.models import Database
+from database.models import db
 from states.reminder import ReminderStates
 
-db = Database()
+
 router = Router()
 
 
