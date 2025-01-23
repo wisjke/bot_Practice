@@ -54,10 +54,8 @@ class SupabaseDatabase:
 
     def get_early_reminders(self, future_date: str) -> List[Tuple]:
         try:
-            response = self.client.table("reminders").select("user_id, name, message, days_before").filter(
-                "early_reminder", "eq", True
-            ).execute()
-
+            response = self.client.table("reminders").select("user_id, name, message, days_before, birth_date").filter(
+                "early_reminder", "eq", True).execute()
 
             early_reminders = [
                 (r["user_id"], r["name"], r["message"], r["days_before"])
@@ -77,6 +75,7 @@ class SupabaseDatabase:
                 "birth_date": date
             }).execute()
             return True
+
         except Exception as e:
             logging.error(f"Error deleting reminder: {e}")
             return False

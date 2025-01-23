@@ -11,6 +11,7 @@ async def set_bot_commands(bot: Bot):
     ]
     await bot.set_my_commands(commands)
 
+
 async def get_reply_keyboard():
     keyboard = ReplyKeyboardMarkup(
         keyboard=[

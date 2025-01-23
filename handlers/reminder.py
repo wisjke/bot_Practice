@@ -33,7 +33,6 @@ async def process_name(message: types.Message, state: FSMContext):
 @router.message(ReminderStates.waiting_for_date)
 async def process_date(message: types.Message, state: FSMContext):
     try:
-        date = datetime.strptime(message.text, "%d.%m.%Y")
         await state.update_data(date=message.text)
         await state.set_state(ReminderStates.waiting_for_message)
         await message.answer("📝 Напишіть персональне привітання або повідомлення:")
@@ -62,7 +61,7 @@ async def process_message(message: types.Message, state: FSMContext):
 
 
 @router.callback_query(F.data.startswith("early_"))
-async def process_early_reminder(callback:CallbackQuery, state: FSMContext):
+async def process_early_reminder(callback: CallbackQuery, state: FSMContext):
     action = callback.data.split('_')[1]
     if action == 'no':
         data = await state.get_data()
@@ -117,7 +116,6 @@ async def process_days_before(message: Message, state: FSMContext):
         await message.answer("❌ Введіть, будь ласка, коректне число")
 
 
-
 @router.message(Command(commands=['myreminders']))
 async def cmd_my_reminders(message: Message):
     reminders = db.get_user_reminders(message.from_user.id)
@@ -143,14 +141,12 @@ async def cmd_my_reminders(message: Message):
 
 @router.callback_query(F.data.startswith("delete_"))
 async def process_delete_reminder(callback: CallbackQuery):
-    # Extract name and date from callback data
+
     _, name, date = callback.data.split('_')
 
-    # Delete from database
     if db.delete_reminder(callback.from_user.id, name, date):
-        # Update the message to show it's deleted
         await callback.message.edit_text(
-             f"✅ Нагадування видалено:\n"
+            f"✅ Нагадування видалено:\n"
             f"🎂 {name} - {date}",
             reply_markup=None
         )

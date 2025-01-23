@@ -13,8 +13,9 @@ from utils.commands import set_bot_commands
 
 
 async def main() -> None:
-    load_dotenv()
+    load_dotenv('.env')
     token = os.getenv('TOKEN_API')
+
     #bot
     bot = Bot(token=token)
 
@@ -28,7 +29,7 @@ async def main() -> None:
     dp.include_router(reminder.router)
 
     # Schedule the reminder check job
-    trigger = CronTrigger(hour=12, minute=52)
+    trigger = CronTrigger(hour=17, minute=27)
     scheduler.add_job(check_reminders, trigger=trigger, args=[bot])
     scheduler.start()
 
