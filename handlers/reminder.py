@@ -1,12 +1,10 @@
-import os
-from dotenv import load_dotenv
 from aiogram import types, Router, F
 from datetime import datetime
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
-
-from database.models import db
+from utils.validators import validate_date
+from database.models import database
 from states.reminder import ReminderStates
 
 
@@ -25,20 +23,23 @@ async def process_name(message: types.Message, state: FSMContext):
     await state.set_state(ReminderStates.waiting_for_date)
     await message.answer(
         "📅 Введіть дату народження у форматі: <b>ДД.ММ.РРРР</b>\n"
-        "Наприклад: 25.12.1990",
+        f"Наприклад: {datetime.today().strftime("%d.%m.%Y")}",
         parse_mode='HTML'
     )
 
 
 @router.message(ReminderStates.waiting_for_date)
 async def process_date(message: types.Message, state: FSMContext):
-    try:
-        await state.update_data(date=message.text)
-        await state.set_state(ReminderStates.waiting_for_message)
-        await message.answer("📝 Напишіть персональне привітання або повідомлення:")
 
-    except ValueError:
-        await message.answer("❌ Невірний формат дати. Спробуйте ще раз.\nПриклад: 25.12.1990")
+    try:
+        validation_result = validate_date(message.text)
+        if validation_result:
+            await state.update_data(date=message.text)
+            await state.set_state(ReminderStates.waiting_for_message)
+            await message.answer("📝 Напишіть персональне привітання або повідомлення:")
+
+    except ValueError as e:
+        await message.answer(f"❌ {str(e)}")
 
 
 @router.message(ReminderStates.waiting_for_message)
@@ -65,7 +66,7 @@ async def process_early_reminder(callback: CallbackQuery, state: FSMContext):
     action = callback.data.split('_')[1]
     if action == 'no':
         data = await state.get_data()
-        db.add_reminder(
+        database.add_reminder(
             callback.from_user.id,
             data['name'],
             data['date'],
@@ -93,7 +94,7 @@ async def process_days_before(message: Message, state: FSMContext):
         days = int(message.text)
         if 1 <= days <= 30:
             data = await state.get_data()
-            db.add_reminder(
+            database.add_reminder(
                 message.from_user.id,
                 data['name'],
                 data['date'],
@@ -118,7 +119,7 @@ async def process_days_before(message: Message, state: FSMContext):
 
 @router.message(Command(commands=['myreminders']))
 async def cmd_my_reminders(message: Message):
-    reminders = db.get_user_reminders(message.from_user.id)
+    reminders = database.get_user_reminders(message.from_user.id)
 
     if not reminders:
         await message.answer("ℹ️ У вас ще немає жодного нагадування")
@@ -144,7 +145,7 @@ async def process_delete_reminder(callback: CallbackQuery):
 
     _, name, date = callback.data.split('_')
 
-    if db.delete_reminder(callback.from_user.id, name, date):
+    if database.delete_reminder(callback.from_user.id, name, date):
         await callback.message.edit_text(
             f"✅ Нагадування видалено:\n"
             f"🎂 {name} - {date}",

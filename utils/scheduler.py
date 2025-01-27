@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from aiogram import Bot
-from database.models import db
+from database.models import database
 
 
 
@@ -9,7 +9,7 @@ async def check_reminders(bot: Bot):
     today = datetime.now().strftime("%d.%m")
 
     try:
-        today_reminders = db.get_today_reminders(today)
+        today_reminders = database.get_today_reminders(today)
         for user_id, name, message in today_reminders:
             try:
                 await bot.send_message(
@@ -29,7 +29,7 @@ async def check_reminders(bot: Bot):
         future_date = datetime.now() + timedelta(days=1)
         future_date_str = future_date.strftime("%d.%m")
 
-        early_reminders = db.get_early_reminders(future_date_str)
+        early_reminders = database.get_early_reminders(future_date_str)
         for user_id, name, message, days_before in early_reminders:
             try:
                 await bot.send_message(

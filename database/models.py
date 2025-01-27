@@ -83,4 +83,4 @@ class SupabaseDatabase:
 load_dotenv()
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
-db = SupabaseDatabase(supabase_url, supabase_key)
+database = SupabaseDatabase(supabase_url, supabase_key)

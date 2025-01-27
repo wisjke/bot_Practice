@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.fsm.storage.memory import MemoryStorage
-from database.models import db
+from database.models import database
 from handlers import common, reminder
 from utils.scheduler import check_reminders
 from utils.commands import set_bot_commands
@@ -16,20 +16,20 @@ async def main() -> None:
     load_dotenv('.env')
     token = os.getenv('TOKEN_API')
 
-    #bot
+    # bot
     bot = Bot(token=token)
 
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     scheduler = AsyncIOScheduler()
-    db.create_tables()
+    database.create_tables()
 
-    #register handlers
+    # register handlers
     dp.include_router(common.router)
     dp.include_router(reminder.router)
 
-    # Schedule the reminder check job
-    trigger = CronTrigger(hour=17, minute=27)
+    # schedule the reminder check job
+    trigger = CronTrigger(hour=10, minute=0)
     scheduler.add_job(check_reminders, trigger=trigger, args=[bot])
     scheduler.start()
 
