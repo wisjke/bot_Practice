@@ -10,7 +10,8 @@ class SupabaseDatabase:
     def __init__(self, supabase_url: str, supabase_key: str):
         self.client: Client = create_client(supabase_url, supabase_key)
 
-    def create_tables(self):
+    @staticmethod
+    def create_tables():
         logging.info("Table creation is managed in Supabase Dashboard or SQL Editor.")
 
     def add_reminder(self, user_id: int, name: str, birth_date: str,

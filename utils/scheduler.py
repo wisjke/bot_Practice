@@ -14,9 +14,9 @@ async def check_reminders(bot: Bot):
             try:
                 await bot.send_message(
                     user_id,
-                    f"🎉 Birthday Reminder! 🎉\n\n"
-                    f"Today is {name}'s birthday!\n"
-                    f"Message: {message}",
+                    f"🎉 Нагадування про день народження! 🎉\n\n"
+                    f"Сьогодні день народження у {name}!\n"
+                    f"Твоє привітання або повідомлення: {message}",
                     parse_mode="HTML"
                 )
             except Exception as e:
@@ -24,7 +24,7 @@ async def check_reminders(bot: Bot):
     except Exception as e:
         logging.error(f"Error fetching today's reminders: {e}")
 
-    # Send early reminders
+    # send early reminders
     try:
         future_date = datetime.now() + timedelta(days=1)
         future_date_str = future_date.strftime("%d.%m")
@@ -34,10 +34,10 @@ async def check_reminders(bot: Bot):
             try:
                 await bot.send_message(
                     user_id,
-                    f"🎁 Early Birthday Reminder! 🎁\n\n"
-                    f"{name}'s birthday is in {days_before} days!\n"
-                    f"Don't forget to prepare!\n"
-                    f"Message: {message}",
+                    f"🎁 Завчасне нагадування про день народження! 🎁\n\n"
+                    f"У {name} день народження через {days_before} дні!\n"
+                    f"Не забудь привітати!\n"
+                    f"Твоє привітання або повідомлення: {message}",
                     parse_mode="HTML"
                 )
             except Exception as e:
