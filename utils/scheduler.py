@@ -5,10 +5,10 @@ from database.models import database
 
 
 
-async def check_reminders(bot: Bot):
-    today = datetime.now().strftime("%d.%m")
+async def check_today_reminders(bot: Bot):
 
     try:
+        today = datetime.now().strftime("%d.%m")
         today_reminders = database.get_today_reminders(today)
         for user_id, name, message in today_reminders:
             try:
@@ -24,12 +24,12 @@ async def check_reminders(bot: Bot):
     except Exception as e:
         logging.error(f"Error fetching today's reminders: {e}")
 
-    # send early reminders
-    try:
-        future_date = datetime.now() + timedelta(days=1)
-        future_date_str = future_date.strftime("%d.%m")
+async def check_early_reminders(bot:Bot):
 
-        early_reminders = database.get_early_reminders(future_date_str)
+    try:
+        today = datetime.now().strftime("%d.%m")
+        early_reminders = database.get_early_reminders(today)
+
         for user_id, name, message, days_before in early_reminders:
             try:
                 await bot.send_message(
@@ -44,3 +44,7 @@ async def check_reminders(bot: Bot):
                 logging.error(f"Failed to send early reminder to {user_id}: {e}")
     except Exception as e:
         logging.error(f"Error fetching early reminders: {e}")
+
+async def check_reminders(bot:Bot):
+    await check_today_reminders(bot)
+    await check_early_reminders(bot)

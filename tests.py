@@ -1,5 +1,9 @@
-from datetime import datetime, timedelta
+from database.models import database
 
-future_date = datetime.now() + timedelta(days=1)
 
-print(future_date)
+db = database
+
+
+res = db.get_early_reminders("28.01")
+
+print(res)

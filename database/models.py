@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime, timedelta
 from typing import List, Tuple
 
 from dotenv import load_dotenv
@@ -45,27 +46,31 @@ class SupabaseDatabase:
     def get_today_reminders(self, today_date: str) -> List[Tuple]:
         try:
             response = self.client.table("reminders").select("user_id, name, message").filter(
-                "birth_date", "like", f"{today_date}%"
-            ).execute()
+                "birth_date", "like", f"{today_date}%").execute()
 
             return [(r["user_id"], r["name"], r["message"]) for r in response.data]
         except Exception as e:
             logging.error(f"Error fetching today's reminders: {e}")
             return []
 
-    def get_early_reminders(self, future_date: str) -> List[Tuple]:
+    def get_early_reminders(self, today_date: str) -> List[Tuple]:
         try:
             response = self.client.table("reminders").select("user_id, name, message, days_before, birth_date").filter(
                 "early_reminder", "eq", True).execute()
 
-            early_reminders = [
-                (r["user_id"], r["name"], r["message"], r["days_before"])
-                for r in response.data
-                if r["days_before"] and future_date == (r["birth_date"])
-            ]
+
+            early_reminders = []
+
+            for r in response.data:
+                birth_date = datetime.strptime(r["birth_date"], "%d.%m.%Y")
+                early_reminder_date = (birth_date - timedelta(days=r["days_before"])).strftime("%d.%m")
+
+                if early_reminder_date == today_date:
+                    early_reminders.append((r["user_id"], r["name"], r["message"], r["days_before"]))
+
             return early_reminders
         except Exception as e:
-            logging.error(f"Error fetching early reminders: {e}")
+            logging.error(f"Error fetching early reminders from database: {e}")
             return []
 
     def delete_reminder(self, user_id: int, name: str, date: str) -> bool:
