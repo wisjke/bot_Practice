@@ -58,7 +58,6 @@ class SupabaseDatabase:
             response = self.client.table("reminders").select("user_id, name, message, days_before, birth_date").filter(
                 "early_reminder", "eq", True).execute()
 
-
             early_reminders = []
 
             for r in response.data:
@@ -85,6 +84,7 @@ class SupabaseDatabase:
         except Exception as e:
             logging.error(f"Error deleting reminder: {e}")
             return False
+
 
 load_dotenv()
 supabase_url = os.getenv("SUPABASE_URL")

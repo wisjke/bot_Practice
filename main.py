@@ -1,13 +1,17 @@
 import asyncio
 import os
 
-from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
+
 from aiogram import Bot, Dispatcher
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiogram.fsm.storage.memory import MemoryStorage
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+
 from database.models import database
 from handlers import common, reminder
+
 from utils.scheduler import check_reminders
 from utils.commands import set_bot_commands
 
@@ -29,7 +33,7 @@ async def main() -> None:
     dp.include_router(reminder.router)
 
     # schedule the reminder check job
-    trigger = CronTrigger(hour=16, minute=24)
+    trigger = CronTrigger(hour=13, minute=44)
     scheduler.add_job(check_reminders, trigger=trigger, args=[bot])
     scheduler.start()
 
